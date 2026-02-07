@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/theme_service.dart';
 
 class ChatBackground extends StatelessWidget {
   final Widget child;
@@ -7,19 +8,33 @@ class ChatBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment.bottomCenter,
-          radius: 1.3,
-          colors: [
-            Color(0xFF1E2A4A), // blue glow
-            Color(0xFF0B0F1A), // dark
-            Colors.black,
-          ],
-        ),
-      ),
-      child: child,
+    // Nakikinig ang background sa theme service
+    return ListenableBuilder(
+      listenable: themeService,
+      builder: (context, _) {
+        final isDark = themeService.isDarkMode;
+
+        return Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.bottomCenter,
+              radius: 1.3,
+              colors: isDark
+                  ? [
+                const Color(0xFF1E2A4A), // Blue glow para sa Dark Mode
+                const Color(0xFF0B0F1A),
+                Colors.black,
+              ]
+                  : [
+                const Color(0xFFE0E5EC), // Light gray/blue glow para sa Light Mode
+                const Color(0xFFF5F5F7),
+                Colors.white,
+              ],
+            ),
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

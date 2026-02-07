@@ -3,13 +3,13 @@ import 'package:http/http.dart' as http;
 import '../models/chat_message.dart';
 
 class GeminiService {
-  static const String apiKey = 'AIzaSyAqCdY0MMkDwdZLndk8BVlfiGj4ipotEcA'; //
+  static const String apiKey = 'AIzaSyAOh045qOJ7DQHRpuMSvrxqmHtHLtJJgvI'; //
   static const String apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'; //
 
   static List<Map<String, dynamic>> _formatMessages(List<ChatMessage> messages) {
     return messages.map((msg) {
       return {
-        'role': msg.role,
+        'role': msg.role == 'user' ? 'user' : 'model',
         'parts': [{'text': msg.text}],
       };
     }).toList();
@@ -19,15 +19,24 @@ class GeminiService {
   static Future<String> sendMultiTurnMessage(
       List<ChatMessage> conversationHistory,
       String personaPrompt,
+      String firstInteraction,
       ) async {
     try {
+      final fullInstruction = """
+$personaPrompt
+
+PERMANENT MEMORY (First Interaction): "$firstInteraction"
+
+STRICT RULE: If the user asks what their first question was, or if they ask if you remember them after they deleted the history, you MUST use the "PERMANENT MEMORY" above to answer them accurately.
+""";
+
       final response = await http.post(
         Uri.parse('$apiUrl?key=$apiKey'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'contents': _formatMessages(conversationHistory),
           'system_instruction': {
-            'parts': [{'text': personaPrompt}]
+            'parts': [{'text': fullInstruction}]
           },
           'generationConfig': {
             'temperature': 0.7,
