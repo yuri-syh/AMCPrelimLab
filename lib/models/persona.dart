@@ -10,6 +10,22 @@ class Persona {
     required this.name,
     required this.systemPrompt,
   });
+
+  // Helper getter para makuha ang tamang image path base sa PersonaType
+  String get imagePath {
+    switch (type) {
+      case PersonaType.medical:
+        return 'assets/images/medical_ai.png';
+      case PersonaType.historian:
+        return 'assets/images/historian_ai.png';
+      case PersonaType.food:
+        return 'assets/images/food_expert_ai.png';
+      case PersonaType.church:
+        return 'assets/images/church_ai.png';
+      case PersonaType.artist:
+        return 'assets/images/artist_ai.png';
+    }
+  }
 }
 
 final personas = [

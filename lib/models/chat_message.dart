@@ -1,12 +1,15 @@
+// models/chat_message.dart
 class ChatMessage {
   final String text;
   final String role;
   final DateTime timestamp;
+  final String? imagePath; // Dagdagan ito
 
   ChatMessage({
     required this.text,
     required this.role,
     required this.timestamp,
+    this.imagePath, // Optional
   });
 
   bool get isUserMessage => role == "user";
@@ -15,6 +18,7 @@ class ChatMessage {
     'text': text,
     'role': role,
     'timestamp': timestamp.toIso8601String(),
+    'imagePath': imagePath, // Isama sa JSON
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,7 @@ class ChatMessage {
       text: json['text'],
       role: json['role'],
       timestamp: DateTime.parse(json['timestamp']),
+      imagePath: json['imagePath'], // I-load mula sa JSON
     );
   }
 }

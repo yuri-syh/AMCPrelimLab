@@ -1,6 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart'; // Import ito para sa kIsWeb
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para sa Clipboard
-import 'package:share_plus/share_plus.dart'; // Para sa Share feature
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/chat_message.dart';
 import '../services/theme_service.dart';
 
@@ -11,19 +13,39 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUserMessage;
+    final isDark = themeService.isDarkMode;
 
-    return ListenableBuilder(
-      listenable: themeService,
-      builder: (context, _) {
-        final isDark = themeService.isDarkMode;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Align(
+        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            // IMAGE DISPLAY LOGIC (Web vs Mobile)
+            if (message.imagePath != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: kIsWeb
+                      ? Image.network(
+                    message.imagePath!, // Sa Web, ang path ay Blob URL
+                    width: 220,
+                    fit: BoxFit.cover,
+                  )
+                      : Image.file(
+                    File(message.imagePath!), // Sa Mobile, ito ay File Path
+                    width: 220,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Align(
-            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
+            // TEXT BUBBLE
+            Container(
               constraints: const BoxConstraints(maxWidth: 280),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isUser
                     ? const Color(0xFF4C7DAA)
@@ -45,11 +67,10 @@ class MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  // SelectableText para pwedeng i-highlight ang part ng text
                   SelectableText(
                     message.text,
                     style: TextStyle(
-                      color: isUser ? Colors.white : (isDark ? Colors.white : Colors.black),
+                      color: isUser || isDark ? Colors.white : Colors.black,
                       fontSize: 15,
                     ),
                   ),
@@ -57,7 +78,7 @@ class MessageBubble extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // ICON: COPY
+                      // COPY ICON
                       GestureDetector(
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: message.text));
@@ -65,31 +86,21 @@ class MessageBubble extends StatelessWidget {
                             const SnackBar(content: Text("Copied!"), duration: Duration(seconds: 1)),
                           );
                         },
-                        child: Icon(
-                          Icons.copy_rounded,
-                          size: 16,
-                          color: isUser ? Colors.white70 : Colors.grey,
-                        ),
+                        child: Icon(Icons.copy_rounded, size: 14, color: isUser ? Colors.white70 : Colors.grey),
                       ),
                       const SizedBox(width: 12),
-                      // ICON: SHARE
+                      // SHARE ICON
                       GestureDetector(
-                        onTap: () {
-                          Share.share(message.text);
-                        },
-                        child: Icon(
-                          Icons.share_rounded,
-                          size: 16,
-                          color: isUser ? Colors.white70 : Colors.grey,
-                        ),
+                        onTap: () => Share.share(message.text),
+                        child: Icon(Icons.share_rounded, size: 14, color: isUser ? Colors.white70 : Colors.grey),
                       ),
                       const SizedBox(width: 12),
-                      // TIME
+                      // TIMESTAMP
                       Text(
-                        _formatTime(message.timestamp),
+                        '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                         style: TextStyle(
                           fontSize: 10,
-                          color: isUser ? Colors.white70 : (isDark ? Colors.grey : Colors.black45),
+                          color: isUser ? Colors.white70 : Colors.grey,
                         ),
                       ),
                     ],
@@ -97,13 +108,9 @@ class MessageBubble extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
-  }
-
-  String _formatTime(DateTime time) {
-    return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
   }
 }
