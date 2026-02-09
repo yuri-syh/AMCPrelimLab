@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../models/chat_message.dart';
 import '../models/persona.dart';
 import '../widgets/message_bubble.dart';
@@ -10,8 +9,7 @@ import '../widgets/input_bar.dart';
 import '../services/gemini_service.dart';
 import '../services/storage_service.dart';
 import '../services/theme_service.dart';
-import 'package:flutter/foundation.dart';
-
+import 'dart:convert';
 
 class ChatScreen extends StatefulWidget {
   final Persona persona;
@@ -32,11 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-
-    if (kIsWeb) {
-      selectedImage = null;
-    }
-
+    if (kIsWeb) selectedImage = null;
     _loadData();
     _initTTS();
   }
@@ -47,8 +41,10 @@ class _ChatScreenState extends State<ChatScreen> {
     await _flutterTts.setSpeechRate(0.8);
   }
 
+  // history
   Future<void> _loadData() async {
-    final history = await StorageService.loadMessages(widget.persona.name);
+    final history =
+    await StorageService.loadMessages(widget.persona.name);
     setState(() => messages = history);
   }
 
@@ -72,21 +68,34 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> handleSend(String text, XFile? imageFile) async {
     if (text.trim().isEmpty && imageFile == null) return;
 
+    // 1. I-save muna ang 'firstChat' kung ito ang unang message
     if (messages.isEmpty && text.isNotEmpty) {
       await StorageService.saveFirstInteraction(widget.persona.name, text);
     }
 
+    // 2. I-load ang firstChat para hindi ito maging 'undefined'
     final firstChat = await StorageService.loadFirstInteraction(widget.persona.name);
-    String? imagePath = imageFile?.path;
-    addMessage(text, "user", imagePath: imagePath);
+
+    String? imageToSave;
+    if (imageFile != null) {
+      if (kIsWeb) {
+        final bytes = await imageFile.readAsBytes();
+        imageToSave = base64Encode(bytes);
+      } else {
+        imageToSave = imageFile.path;
+      }
+    }
+
+    // Gamitin ang imageToSave dito para persistent ang image sa UI
+    addMessage(text, "user", imagePath: imageToSave);
     setState(() => isLoading = true);
 
     try {
       final aiResponse = await GeminiService.sendMultiTurnMessage(
-          messages,
-          widget.persona.systemPrompt,
-          firstChat,
-          imageFile: imageFile
+        messages,
+        widget.persona.systemPrompt,
+        firstChat, // Heto na ang variable na kinuha natin sa itaas
+        imageFile: imageFile,
       );
 
       addMessage(aiResponse, "model");
@@ -102,7 +111,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void deleteHistory() async {
     await _flutterTts.stop();
     setState(() => messages.clear());
-    await StorageService.saveMessages(widget.persona.name, []);
+    await StorageService.saveMessages(
+        widget.persona.name, []);
   }
 
   @override
@@ -118,21 +128,24 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context, _) {
         final isDark = themeService.isDarkMode;
 
-        final Color textColor = isDark ? Colors.white : Colors.black;
-        final Color iconColor = isDark ? Colors.white : Colors.black;
-
         return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0A0E1C) : const Color(0xFFF5F5F7),
+          backgroundColor:
+          isDark ? const Color(0xFF0A0E1C) : const Color(0xFFF5F5F7),
           body: Stack(
             children: [
+              // CHAT BODY
               Column(
                 children: [
                   const SizedBox(height: 110),
                   Expanded(
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 12),
                       itemCount: messages.length,
-                      itemBuilder: (_, i) => MessageBubble(message: messages[i]),
+                      itemBuilder: (_, i) => MessageBubble(
+                        message: messages[i],
+                        persona: widget.persona,
+                      ),
                     ),
                   ),
                   if (isLoading)
@@ -142,63 +155,105 @@ class _ChatScreenState extends State<ChatScreen> {
                         "Thinking...",
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey : Colors.black54,
+                          color: isDark
+                              ? Colors.grey
+                              : Colors.black54,
                         ),
                       ),
                     ),
                   Container(
-                    color: isDark ? Colors.transparent : Colors.white,
+                    color:
+                    isDark ? Colors.transparent : Colors.white,
                     child: InputBar(onSend: handleSend),
                   ),
                 ],
               ),
+
+              //HEADER / BACK
               Positioned(
-                top: 35, left: 16, right: 16,
+                top: 35,
+                left: 16,
+                right: 16,
                 child: Container(
                   height: 80,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0B0F1A) : Colors.white,
+                    color: isDark
+                        ? const Color(0xFF0B0F1A)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
                       IconButton(
-                          icon: Icon(Icons.arrow_back_ios_new, color: iconColor),
-                          onPressed: () => Navigator.pop(context)
+                        icon: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: isDark
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                        onPressed: () =>
+                            Navigator.pop(context),
                       ),
-                      // PINALITAN: Idinagdag ang Persona Logo sa tabi ng pangalan
+
                       CircleAvatar(
                         radius: 18,
-                        backgroundImage: AssetImage(widget.persona.imagePath),
+                        backgroundImage: AssetImage(
+                            widget.persona.imagePath),
                       ),
+
                       const SizedBox(width: 10),
+
                       Expanded(
-                          child: Text(
-                              widget.persona.name,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              )
-                          )
+                        child: Text(
+                          widget.persona.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
                       ),
+
                       IconButton(
                         icon: Icon(
-                          isMuted ? Icons.volume_off : Icons.volume_up,
-                          color: isMuted ? Colors.grey : Colors.green,
+                          isMuted
+                              ? Icons.volume_off
+                              : Icons.volume_up,
+                          color: isMuted
+                              ? Colors.grey
+                              : Colors.green,
                         ),
                         onPressed: () {
-                          setState(() => isMuted = !isMuted);
-                          if (!isMuted && messages.isNotEmpty && messages.last.role == "model") {
+                          setState(
+                                  () => isMuted = !isMuted);
+                          if (!isMuted &&
+                              messages.isNotEmpty &&
+                              messages.last.role ==
+                                  "model") {
                             _speak(messages.last.text);
-                          } else if (isMuted) {
+                          } else {
                             _flutterTts.stop();
                           }
                         },
                       ),
-                      IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: deleteHistory),
+
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: deleteHistory,
+                      ),
                     ],
                   ),
                 ),

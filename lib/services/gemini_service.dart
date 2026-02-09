@@ -6,7 +6,7 @@ import '../models/chat_message.dart';
 import 'package:image_picker/image_picker.dart';
 
 class GeminiService {
-  static const String apiKey = 'AIzaSyC2QK3eqcrp5VaSrcpC0aCpfTCWL8JlSEY';
+  static const String apiKey = 'AIzaSyB8_mjAPzBD5zWdJEnfP5aqkid0duLNorM';
   static const String apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
   static List<Map<String, dynamic>> _formatMessages(List<ChatMessage> messages) {
     return messages.map((msg) {
@@ -51,7 +51,7 @@ STRICT RULE: If the user asks what their first question was, or if they ask if y
       if (imageFile != null) {
         Uint8List imageBytes;
 
-        // ✅ SAFETY CHECK for Flutter Web (blob dies after refresh)
+        // SAFETY CHECK for Flutter Web (blob dies after refresh)
         if (kIsWeb) {
           try {
             imageBytes = await imageFile.readAsBytes();
@@ -84,10 +84,10 @@ STRICT RULE: If the user asks what their first question was, or if they ask if y
             'parts': [{'text': fullInstruction}]
           },
           'generationConfig': {
-            'temperature': 0.8, // Tinaasan natin para mas natural ang pagsagot
+            'temperature': 0.8,
             'topK': 1,
             'topP': 1,
-            'maxOutputTokens': 100,
+            'maxOutputTokens': 300,
           }
         }),
       );

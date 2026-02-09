@@ -11,7 +11,6 @@ class Persona {
     required this.systemPrompt,
   });
 
-  // Helper getter para makuha ang tamang image path base sa PersonaType
   String get imagePath {
     switch (type) {
       case PersonaType.medical:

@@ -3,7 +3,7 @@ class ChatMessage {
   final String text;
   final String role;
   final DateTime timestamp;
-  final String? imagePath; // Dagdagan ito
+  final String? imagePath;
 
   ChatMessage({
     required this.text,
@@ -18,7 +18,7 @@ class ChatMessage {
     'text': text,
     'role': role,
     'timestamp': timestamp.toIso8601String(),
-    'imagePath': imagePath, // Isama sa JSON
+    'imagePath': imagePath,
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -26,7 +26,7 @@ class ChatMessage {
       text: json['text'],
       role: json['role'],
       timestamp: DateTime.parse(json['timestamp']),
-      imagePath: json['imagePath'], // I-load mula sa JSON
+      imagePath: json['imagePath'],
     );
   }
 }

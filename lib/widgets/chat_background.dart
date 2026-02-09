@@ -8,7 +8,6 @@ class ChatBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Nakikinig ang background sa theme service
     return ListenableBuilder(
       listenable: themeService,
       builder: (context, _) {
@@ -21,12 +20,12 @@ class ChatBackground extends StatelessWidget {
               radius: 1.3,
               colors: isDark
                   ? [
-                const Color(0xFF1E2A4A), // Blue glow para sa Dark Mode
+                const Color(0xFF1E2A4A), // Blue glow for Dark Mode
                 const Color(0xFF0B0F1A),
                 Colors.black,
               ]
                   : [
-                const Color(0xFFE0E5EC), // Light gray/blue glow para sa Light Mode
+                const Color(0xFFE0E5EC), // Light gray/blue glow for Light Mode
                 const Color(0xFFF5F5F7),
                 Colors.white,
               ],

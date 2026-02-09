@@ -15,10 +15,11 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  // Helper para sa format ng oras sa chat preview
+  // Time
   String _formatTime(DateTime dateTime) {
     int hour = dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
     if (hour == 0) hour = 12;
+  // Padleft
     String minute = dateTime.minute.toString().padLeft(2, '0');
     String period = dateTime.hour >= 12 ? "PM" : "AM";
     return "$hour:$minute $period";
@@ -78,6 +79,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       bool isDark,
       LanguageService lang,
       ) {
+    // last message and time
     return FutureBuilder<List<ChatMessage>>(
       future: StorageService.loadMessages(p.name),
       builder: (context, snapshot) {
@@ -230,7 +232,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             onTap: themeService.toggleTheme,
           ),
 
-          // About AI Section (Custom Dialog)
+          // About AI Section
           ListTile(
             leading: Icon(
               Icons.info_outline,

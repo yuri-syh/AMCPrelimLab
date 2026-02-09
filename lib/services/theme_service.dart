@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class ThemeService extends ChangeNotifier {
-  // Naka-default sa Dark Mode
+
+  // Default Dark Mode
   bool _isDarkMode = true;
   bool get isDarkMode => _isDarkMode;
 
-  // Kumukuha ng tamang ThemeData base sa boolean
   ThemeData get currentTheme => _isDarkMode ? ThemeData.dark().copyWith(
     scaffoldBackgroundColor: Colors.black,
     appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0B0F1A), elevation: 0),

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io'; // Import para sa File
+import 'dart:io';
 import 'package:path_provider/path_provider.dart'; // Import para sa directory
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_message.dart';
@@ -19,7 +19,7 @@ class StorageService {
     return decoded.map((e) => ChatMessage.fromJson(e)).toList();
   }
 
-  // --- EXPORT TO TEXT FILE LOGIC ---
+  // EXPORT TO TEXT FILE LOGIC
   static Future<File> exportToTextFile(String personaName, List<ChatMessage> messages) async {
     String content = "Chat History with $personaName\n";
     content += "Date: ${DateTime.now().toString()}\n";
@@ -30,11 +30,9 @@ class StorageService {
       content += "[$role]: ${msg.text}\n\n";
     }
 
-    // Kinukuha ang temporary folder ng phone
     final directory = await getTemporaryDirectory();
     final file = File('${directory.path}/${personaName}_chat_history.txt');
 
-    // Isinusulat ang string sa file
     return await file.writeAsString(content);
   }
 
