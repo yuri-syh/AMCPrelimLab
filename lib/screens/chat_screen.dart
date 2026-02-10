@@ -10,6 +10,7 @@ import '../services/gemini_service.dart';
 import '../services/storage_service.dart';
 import '../services/theme_service.dart';
 import 'dart:convert';
+import 'dart:ui';
 
 class ChatScreen extends StatefulWidget {
   final Persona persona;
@@ -67,13 +68,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> handleSend(String text, XFile? imageFile) async {
     if (text.trim().isEmpty && imageFile == null) return;
-
-    // 1. I-save muna ang 'firstChat' kung ito ang unang message
     if (messages.isEmpty && text.isNotEmpty) {
       await StorageService.saveFirstInteraction(widget.persona.name, text);
     }
-
-    // 2. I-load ang firstChat para hindi ito maging 'undefined'
     final firstChat = await StorageService.loadFirstInteraction(widget.persona.name);
 
     String? imageToSave;
@@ -86,7 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
-    // Gamitin ang imageToSave dito para persistent ang image sa UI
+
     addMessage(text, "user", imagePath: imageToSave);
     setState(() => isLoading = true);
 
@@ -94,7 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final aiResponse = await GeminiService.sendMultiTurnMessage(
         messages,
         widget.persona.systemPrompt,
-        firstChat, // Heto na ang variable na kinuha natin sa itaas
+        firstChat,
         imageFile: imageFile,
       );
 
@@ -136,7 +133,7 @@ class _ChatScreenState extends State<ChatScreen> {
               // CHAT BODY
               Column(
                 children: [
-                  const SizedBox(height: 110),
+                  const SizedBox(height: 125),
                   Expanded(
                     child: ListView.builder(
                       padding:

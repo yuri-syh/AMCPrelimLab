@@ -2,23 +2,24 @@ import 'dart:io';
 import 'package:flutter/foundation.dart'; // Para sa kIsWeb
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:image_picker/image_picker.dart'; //
+import 'package:image_picker/image_picker.dart'; // Para sa image integration
 import '../services/theme_service.dart';
 
 class InputBar extends StatefulWidget {
-  final Function(String, XFile?) onSend; // Binago para sa XFile
+  final Function(String, XFile?) onSend;
   const InputBar({super.key, required this.onSend});
 
   @override
   State<InputBar> createState() => _InputBarState();
 }
 
+// VOICE CHAT
 class _InputBarState extends State<InputBar> {
   final TextEditingController controller = TextEditingController();
   final stt.SpeechToText _speech = stt.SpeechToText();
   final ImagePicker _picker = ImagePicker();
   bool _isListening = false;
-  XFile? _selectedImage; // Binago mula File tungong XFile
+  XFile? _selectedImage;
 
   void _listen() async {
     if (!_isListening) {

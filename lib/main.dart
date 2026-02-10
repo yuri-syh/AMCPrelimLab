@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/chat_list_screen.dart';
+import 'screens/home_screen.dart';
 
 
 void main() {
@@ -14,7 +14,7 @@ class ChatApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const ChatListScreen(),
+      home: const HomeScreen(),
     );
   }
 }

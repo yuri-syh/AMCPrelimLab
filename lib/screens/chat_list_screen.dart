@@ -34,52 +34,70 @@ class _ChatListScreenState extends State<ChatListScreen> {
         final lang = languageService;
 
         return Scaffold(
-          backgroundColor: isDark ? Colors.black : const Color(0xFFF5F5F7),
           drawer: _buildDrawer(isDark, lang),
-          appBar: AppBar(
-            backgroundColor: isDark ? const Color(0xFF0B0F1A) : Colors.white,
-            elevation: isDark ? 0 : 1,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: Icon(Icons.settings,
-                    color: isDark ? Colors.white : Colors.black),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-            title: Text(
-              lang.translate('app_title'),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
           body: ChatBackground(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              itemCount: personas.length,
-              itemBuilder: (context, index) {
-                return _buildChatCard(
-                  context,
-                  personas[index],
-                  isDark,
-                  lang,
-                );
-              },
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 120.0,
+                  floating: true,
+                  pinned: true,
+                  stretch: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: Text(
+                      lang.translate('app_title'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        fontSize: 22,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                  leading: Builder(
+                    builder: (context) => IconButton(
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.menu_rounded,
+                            color: isDark ? Colors.white : Colors.black, size: 20),
+                      ),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  ),
+                ),
+
+                // Chat List
+                SliverPadding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        return _buildChatCard(
+                          context,
+                          personas[index],
+                          isDark,
+                          lang,
+                        );
+                      },
+                      childCount: personas.length,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
       },
     );
   }
-
-  Widget _buildChatCard(
-      BuildContext context,
-      Persona p,
-      bool isDark,
-      LanguageService lang,
-      ) {
-    // last message and time
+  Widget _buildChatCard(BuildContext context, Persona p, bool isDark, LanguageService lang) {
     return FutureBuilder<List<ChatMessage>>(
       future: StorageService.loadMessages(p.name),
       builder: (context, snapshot) {
@@ -90,96 +108,114 @@ class _ChatListScreenState extends State<ChatListScreen> {
         if (hasChat) {
           final lastMsg = snapshot.data!.last;
           displayTime = _formatTime(lastMsg.timestamp);
-          final sender = lastMsg.role == "user" ? "You: " : "${p.name}: ";
+          final sender = lastMsg.role == "user" ? "You: " : "";
           lastMessagePreview = "$sender${lastMsg.text}";
         }
 
-        return InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(persona: p),
-              ),
-            );
-            setState(() {});
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.45 : 0.15),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(persona: p)));
+              setState(() {});
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.08) : Colors.transparent,
                 ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(p.imagePath),
-                      fit: BoxFit.cover,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Avatar with status indicator
+                  Stack(
                     children: [
-                      Text(
-                        p.name,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Colors.blueAccent, Colors.purpleAccent.withOpacity(0.5)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        lastMessagePreview,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade700,
-                          fontSize: 14,
-                          height: 1.3,
-                          fontStyle:
-                          hasChat ? FontStyle.normal : FontStyle.italic,
+                        child: Padding(
+                          padding: const EdgeInsets.all(2), // Border effect
+                          child: CircleAvatar(
+                            backgroundImage: AssetImage(p.imagePath),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                if (displayTime.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      displayTime,
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade500,
-                        fontSize: 12,
-                      ),
+                  const SizedBox(width: 16),
+
+                  // Name and Message
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              p.name,
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (displayTime.isNotEmpty)
+                              Text(
+                                displayTime,
+                                style: TextStyle(
+                                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                                  fontSize: 11,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          lastMessagePreview,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            fontSize: 14,
+                            fontStyle: hasChat ? FontStyle.normal : FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: isDark ? Colors.white24 : Colors.black12),
+                ],
+              ),
             ),
           ),
         );
@@ -190,29 +226,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget _buildDrawer(bool isDark, LanguageService lang) {
     return Drawer(
       backgroundColor: isDark ? const Color(0xFF0B0F1A) : Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          DrawerHeader(
+          UserAccountsDrawerHeader(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1B1F2D) : Colors.blueAccent,
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1B1F2D), const Color(0xFF0B0F1A)]
+                    : [Colors.blueAccent, Colors.lightBlue],
+              ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.star, size: 42, color: Colors.white),
-                // Binaba ang text gamit ang mas malaking height
-                SizedBox(height: 35),
-                Text(
-                  'Gen AI',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white24,
+              child: Icon(Icons.auto_awesome, color: Colors.white, size: 30),
             ),
+            accountName: const Text("Gen AI Explorer", style: TextStyle(fontWeight: FontWeight.bold)),
+            accountEmail: null,
           ),
 
           // Theme Toggle Section

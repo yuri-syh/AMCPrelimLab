@@ -31,7 +31,7 @@ class ChatTopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 🔙 Back button
+          // Back button
           GestureDetector(
             onTap: onBack,
             child: Container(
@@ -50,7 +50,7 @@ class ChatTopBar extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // 👤 Persona Name
+          // Persona Name
           Expanded(
             child: Text(
               persona.name,
@@ -62,7 +62,7 @@ class ChatTopBar extends StatelessWidget {
             ),
           ),
 
-          // 🗑 Delete button
+          // Delete button
           GestureDetector(
             onTap: onDelete,
             child: Container(

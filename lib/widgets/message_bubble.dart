@@ -113,6 +113,7 @@ class MessageBubble extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          //Copied button
                           GestureDetector(
                             onTap: () {
                               Clipboard.setData(
@@ -132,6 +133,7 @@ class MessageBubble extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
+                          //share button
                           GestureDetector(
                             onTap: () => Share.share(message.text),
                             child: Icon(
